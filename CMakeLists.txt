@@ -133,7 +133,44 @@ ExternalProject_Add(libwebp
   CMAKE_ARGS        ${WEBP_ARGS}
 )
 
-add_custom_target(WebCore-Deps ALL DEPENDS zlib libpng libjpeg-turbo icu libxml2 libxslt brotli nghttp2 libressl curl freetype harfbuzz libwebp)
+# libaom v3.5.0 — AV1 decode-only (encoder disabled to keep build times reasonable)
+set(LIBAOM_ARGS ${COMMON_ARGS}
+    -DENABLE_DOCS=OFF
+    -DENABLE_EXAMPLES=OFF
+    -DENABLE_TESTDATA=OFF
+    -DENABLE_TESTS=OFF
+    -DENABLE_TOOLS=OFF
+    -DBUILD_SHARED_LIBS=OFF
+    -DCONFIG_AV1_ENCODER=0
+)
+
+ExternalProject_Add(libaom
+  GIT_REPOSITORY    https://aomedia.googlesource.com/aom
+  GIT_TAG           v3.5.0
+  GIT_SHALLOW       TRUE
+  CMAKE_ARGS        ${LIBAOM_ARGS}
+)
+
+# libavif v0.11.0 — decode-only, backed by the libaom built above
+set(LIBAVIF_ARGS ${COMMON_ARGS}
+    -DBUILD_SHARED_LIBS=OFF
+    -DAVIF_CODEC_AOM=ON
+    -DAVIF_CODEC_AOM_DECODE=ON
+    -DAVIF_CODEC_AOM_ENCODE=OFF
+    -DAVIF_BUILD_APPS=OFF
+    -DAVIF_BUILD_TESTS=OFF
+    -DAVIF_ENABLE_WERROR=OFF
+)
+
+ExternalProject_Add(libavif
+  GIT_REPOSITORY    https://github.com/AOMediaCodec/libavif.git
+  GIT_TAG           v0.11.0
+  GIT_SHALLOW       TRUE
+  CMAKE_ARGS        ${LIBAVIF_ARGS}
+  DEPENDS           libaom
+)
+
+add_custom_target(WebCore-Deps ALL DEPENDS zlib libpng libjpeg-turbo icu libxml2 libxslt brotli nghttp2 libressl curl freetype harfbuzz libwebp libaom libavif)
 
 INSTALL(DIRECTORY "${OUT_DIR}/include" DESTINATION ".")
 INSTALL(DIRECTORY "${OUT_DIR}/bin" DESTINATION ".")
