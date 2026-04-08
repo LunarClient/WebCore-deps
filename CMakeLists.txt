@@ -142,6 +142,7 @@ set(LIBAOM_ARGS ${COMMON_ARGS}
     -DENABLE_TOOLS=OFF
     -DBUILD_SHARED_LIBS=OFF
     -DCONFIG_AV1_ENCODER=0
+    -DAOM_TARGET_CPU=generic
 )
 
 ExternalProject_Add(libaom
